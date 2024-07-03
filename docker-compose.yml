@@ -14,7 +14,7 @@ services:
     env_file:
       - .env
     ports:
-      - '4443:4443'
+      - '443:443'
     volumes:
       - ./srcs/nginx/conf/:/etc/nginx/http.d/
       - wp-volume:/var/www/

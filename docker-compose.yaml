@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:1.27.0-bookworm
+    container_name: nginx
+    labels:
+      - ${LABLE}
+    depends_on:
+      - postgres
+      - backend
+    ports:
+      - '443:443'
+    volumes:
+      - ./nginx/conf/:/etc/nginx/conf.d/
+      - ./nginx/html/:/var/www/
+    secrets:
+      - nginx_crt
+      - nginx_key
+    networks:
+      - transcendence
+    command: ["nginx", "-g", "daemon off;"]
+    restart: always
+
+  postgres:
+    image: postgres:12.19-bookworm
+    container_name: postgres
+    labels:
+      - ${LABLE}
+    env_file:
+      - .env
+    ports:
+     - '5432:5432'
+    volumes:
+      - db_volume:/var/lib/postgresql/data
+    networks:
+      - transcendence
+    restart: always
+  
+  backend:
+    image: node:22.4.0-bookworm-slim
+    container_name: backend
+    labels:
+      - ${LABLE}
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    ports:
+      - '3000:3000'
+    working_dir: /app
+    volumes:
+      - ./backend/:/app
+      - /app/node_modules
+    networks:
+      - transcendence
+    command: bash -c "npm install && node server.js"
+    restart: always
+
+volumes:
+  db_volume:
+    driver_opts:
+      o: bind
+      type: none
+      device: ${postgres_dir}
+
+networks:
+  transcendence:
+    driver: bridge
+
+secrets:
+  nginx_crt:
+    file: ${ssl_dir}/${crt_name}
+  nginx_key:
+    file: ${ssl_dir}/${key_name}
+

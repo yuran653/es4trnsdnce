@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Postgres Query Interface</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+    }
+    button {
+      margin-top: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+  <h1>Postgres Query Interface</h1>
+  <textarea id="sql" placeholder="Enter SQL query here..."></textarea><br>
+  <button onclick="executeQuery()">Run Query</button>
+
+  <div id="result"></div>
+
+  <script>
+    async function executeQuery() {
+      const sql = document.getElementById('sql').value;
+
+      const response = await fetch('/api/query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ sql })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Check if there's any data returned
+        if (data.length === 0) {
+          document.getElementById('result').innerText = 'Operation successful.';
+        } else {
+          // Display data in a table format if it's a SELECT query
+          displayResult(data);
+        }
+      } else {
+        document.getElementById('result').innerText = `Error: ${data.error}`;
+      }
+    }
+
+    function displayResult(data) {
+      let table = '<table><tr>';
+
+      // Create table headers
+      for (const key in data[0]) {
+        table += `<th>${key}</th>`;
+      }
+      table += '</tr>';
+
+      // Create table rows
+      for (const row of data) {
+        table += '<tr>';
+        for (const value in row) {
+          table += `<td>${row[value]}</td>`;
+        }
+        table += '</tr>';
+      }
+
+      table += '</table>';
+
+      document.getElementById('result').innerHTML = table;
+    }
+  </script>
+</body>
+</html>

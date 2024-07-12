@@ -7,7 +7,6 @@ services:
     labels:
       - ${LABLE}
     depends_on:
-      - postgres
       - backend
     ports:
       - '443:443'
@@ -57,12 +56,101 @@ services:
     command: bash -c "npm install && node server.js"
     restart: always
 
+  es01:
+    image: elasticsearch:8.14.2
+    container_name: es01
+    labels:
+      - ${LABLE}
+    depends_on:
+      - nginx
+    environment:
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es02,es03
+      - cluster.initial_master_nodes=es01,es02,es03
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+    ports:
+      - 9200:9200
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - es01_volume:/usr/share/elasticsearch/data
+    networks:
+      - transcendence
+
+  es02:
+    image: elasticsearch:8.14.2
+    container_name: es02
+    labels:
+      - ${LABLE}
+    depends_on:
+      - es01
+    environment:
+      - node.name=es02
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es01,es03
+      - cluster.initial_master_nodes=es01,es02,es03
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - es02_volume:/usr/share/elasticsearch/data
+    networks:
+      - transcendence
+
+  es03:
+    image: elasticsearch:8.14.2
+    container_name: es03
+    labels:
+      - ${LABLE}
+    depends_on:
+      - es02
+    environment:
+      - node.name=es03
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es01,es02
+      - cluster.initial_master_nodes=es01,es02,es03
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - es03_volume:/usr/share/elasticsearch/data
+    networks:
+      - transcendence
+
 volumes:
   db_volume:
     driver_opts:
       o: bind
       type: none
       device: ${postgres_dir}
+  es01_volume:
+    driver_opts:
+      o: bind
+      type: none
+      device: ${es_dir}/01
+  es02_volume:
+    driver_opts:
+      o: bind
+      type: none
+      device: ${es_dir}/02
+  es03_volume:
+    driver_opts:
+      o: bind
+      type: none
+      device: ${es_dir}/03
 
 networks:
   transcendence:

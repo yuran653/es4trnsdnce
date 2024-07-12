@@ -14,6 +14,9 @@ create_directory() {
 
 create_directory "$ssl_dir"
 create_directory "$postgres_dir"
+create_directory "$es_dir/01"
+create_directory "$es_dir/02"
+create_directory "$es_dir/03"
 
 if [ ! -f "$ssl_dir/$crt_name" ] || [ ! -f "$ssl_dir/$key_name" ]; then
     openssl req -newkey rsa:4096 -x509 -sha256 -days 365 -nodes \

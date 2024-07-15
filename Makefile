@@ -30,7 +30,7 @@ down:
 	@docker-compose -f $(COMPOSE_FILE) --env-file $(ENV_FILE) down
 	@echo $(GREEN) "\n\tStop ${LABLE}: done\n" ${END}
 
-re: clean all
+re: down all
 
 clean:
 	@echo $(YELLOW) "\n\tCleaning up ${LABLE} objects...\n" ${END}

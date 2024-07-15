@@ -32,6 +32,7 @@ services:
     ports:
      - '5432:5432'
     volumes:
+      - ./postgres/conf/default.conf:/var/lib/postgresql/data/postgresql.conf
       - db_volume:/var/lib/postgresql/data
     networks:
       - transcendence
